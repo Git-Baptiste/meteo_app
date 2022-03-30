@@ -1,5 +1,19 @@
-const CLEAPI = '5af19b351fc0b5f2b690f691746f75ee';
+import tabJoursEnOrdre from "./Utilitaire/gestionTemps.js";
+
+// console.log(tabJoursEnOrdre);
+
+const CLEAPI = '48b323abeb3639e7a7fc6a045285f45a';
 let resultatsAPI;
+
+const temps = document.querySelector('.temps');
+const temperature = document.querySelector('.temperature');
+const localisation = document.querySelector('.localisation');
+const heure = document.querySelectorAll('.heure-nom-prevision');
+const tempPourH = document.querySelectorAll('.heure-prevision-valeur');
+const joursDiv = document.querySelectorAll('.jour-prevision-nom');
+const tempJoursDiv = document.querySelectorAll('.jour-prevision-temp');
+const imgIcone = document.querySelector('.logo-meteo');
+const chargementContainer = document.querySelector('.overlay-icone-chargement')
 
 if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(position => {
@@ -16,13 +30,72 @@ if(navigator.geolocation){
 
 function AppelAPI(long, lat) {
       // console.log(long, lat);
-      fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${long}&exclude=minutely$units=metric$lang=fr$&appid={${CLEAPI}}`)
+      fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${long}&exclude=minutely&lang=fr&units=metric&appid=${CLEAPI}`)
       // Clé API non valide pour le moment, attendre quelques heures.
       .then((reponse) => {
             return reponse.json();
       })
       .then((data) => {
-            console.log(data);
+            // console.log(data);
+            resultatsAPI = data;
+
+            temps.innerText = resultatsAPI.current.weather[0].description;
+            temperature.innerText = `${Math.trunc(resultatsAPI.current.temp)}°C`;
+            localisation.innerText = resultatsAPI.timezone;
+
+
+            let heureActuelle = new Date().getHours();
+
+            for(let i = 0; i < heure.length; i++) {
+
+                  let heureIncr = heureActuelle + i * 3;
+
+                  if(heureIncr > 24) {
+                        heure[i].innerText = `${heureIncr - 24} h`;
+                  } else if(heureIncr === 24) {
+                        heure[i].innerText = "00 h";
+                  } else {
+
+                        heure[i].innerText = `${heureIncr} h`;
+                  }
+
+            }
+
+            // Température par tranches de 3h:
+
+            for(let j = 0; j < tempPourH.length; j++){
+                  tempPourH[j].innerText = `${Math.trunc(resultatsAPI.hourly[j *3].temp)}°C`;
+            }
+
+
+            // Trois premières lettres des jours:
+
+            for(let k = 0; k < tabJoursEnOrdre.length; k++) {
+                  joursDiv[k].innerText = tabJoursEnOrdre[k].slice(0,3);
+            }
+
+
+            //Températures pour chaque jour:
+
+            for(let m = 0; m < 7; m++) {
+                  tempJoursDiv[m].innerText = `${Math.trunc(resultatsAPI.daily[m + 1].temp.day)}°C`
+            }
+
+
+            //Affichage dynamique de l'icone
+
+            if(heureActuelle >= 6 && heureActuelle < 21) {
+                  imgIcone.src = `/ressources/jour/${resultatsAPI.current.weather[0].icon}.svg`;
+            } else {
+                  imgIcone.src = `/ressources/nuit/${resultatsAPI.current.weather[0].icon}.svg`;
+            }
+
+
+            // Spin Loader
+            chargementContainer.classList.add('disparition');
+
+
+
       })
 
 
