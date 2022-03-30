@@ -30,6 +30,7 @@ if(navigator.geolocation){
 
 function AppelAPI(long, lat) {
       // console.log(long, lat);
+      +
       fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${long}&exclude=minutely&lang=fr&units=metric&appid=${CLEAPI}`)
       // Clé API non valide pour le moment, attendre quelques heures.
       .then((reponse) => {
